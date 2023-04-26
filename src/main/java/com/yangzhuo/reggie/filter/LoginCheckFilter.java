@@ -2,6 +2,7 @@ package com.yangzhuo.reggie.filter;
 
 
 import com.alibaba.fastjson.JSON;
+import com.yangzhuo.reggie.common.BaseContext;
 import com.yangzhuo.reggie.common.R;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.AntPathMatcher;
@@ -46,6 +47,11 @@ public class LoginCheckFilter implements Filter {
         if(request.getSession().getAttribute("employee")!=null){
             filterChain.doFilter(request,response);
             log.info("以登录");
+            //在该线程中设置用户id
+            Long empId = (Long) request.getSession().getAttribute("employee");
+            BaseContext.setCurrentId(empId);
+            long id=Thread.currentThread().getId();
+            log.info("线程id为: {}",id);
             return;
         }
         // 5 如果没有登陆，通过输出流方式向客户端响应数据

@@ -79,12 +79,12 @@ public class EmployeeController {
         log.info("新增员工，员工信息: {}",employee.toString());
         //设置初始密码123456，需要进行md5加密处理
         employee.setPassword(DigestUtils.md5DigestAsHex("123456".getBytes()));
-        employee.setCreateTime(LocalDateTime.now());
-        employee.setUpdateTime(LocalDateTime.now());
-        //获取当前登录用户的id
-        Long id =(Long) request.getSession().getAttribute("employee");
-        employee.setCreateUser(id);
-        employee.setUpdateUser(id);
+//        employee.setCreateTime(LocalDateTime.now());
+//        employee.setUpdateTime(LocalDateTime.now());
+//        //获取当前登录用户的id
+//        Long id =(Long) request.getSession().getAttribute("employee");
+//        employee.setCreateUser(id);
+//        employee.setUpdateUser(id);
 
         employeeService.save(employee);
         return R.success("新增员工成功");
@@ -131,5 +131,20 @@ public class EmployeeController {
         employee.setUpdateUser(empId);
         employeeService.updateById(employee);
         return R.success("员工信息修改成功");
+    }
+
+    /**
+     * 根据id查询员工信息
+     * @param id
+     * @return
+     */
+    @GetMapping("/{id}")
+    public R<Employee> getById(@PathVariable Long id){
+        log.info("根据id查询员工信息");
+        Employee employee = employeeService.getById(id);
+        if(employee!=null){
+            return R.success(employee);
+        }
+        return R.error("没有查询到对应员工信息");
     }
 }
