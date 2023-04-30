@@ -2,6 +2,7 @@ package com.yangzhuo.reggie.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.yangzhuo.reggie.common.CustomException;
 import com.yangzhuo.reggie.entity.Category;
 import com.yangzhuo.reggie.entity.Dish;
 import com.yangzhuo.reggie.entity.Setmeal;
@@ -26,14 +27,15 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
      */
     @Override
     public void remove(Long id) {
-        // 1
+        // 1 查询当前分类是否关联了菜品，如果已经关联，抛出一个业务异常
+        //创建条件构造器
         LambdaQueryWrapper<Dish> dishLambdaQueryWrapper=new LambdaQueryWrapper<>();
-        //添加查询条件
+        //添加查询条件,根据分类id查询
         dishLambdaQueryWrapper.eq(Dish::getCategoryId,id);
         int count = dishService.count(dishLambdaQueryWrapper);
-        //查询当前分类是否关联了菜品，如果已经关联，抛出一个业务异常
         if(count>0){
             //已经关联菜品，抛出一个业务异常
+            throw new CustomException("当前分类项已关联菜品，不能删除");
         }
         // 2
         //添加查询条件
@@ -43,8 +45,9 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
         //查询当前分类是否已经关联了套餐，如果已经关联，抛出一个业务异常
         if(count2>0){
             //已经关联套餐，抛出一个业务异常
+            throw new CustomException("当前分类项已关联套餐，不能删除");
         }
         //正常删除分类
-
+        super.removeById(id);
     }
 }
