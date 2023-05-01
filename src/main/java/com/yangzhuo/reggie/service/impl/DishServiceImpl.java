@@ -1,5 +1,6 @@
 package com.yangzhuo.reggie.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.yangzhuo.reggie.dto.DishDto;
 import com.yangzhuo.reggie.entity.Dish;
@@ -8,6 +9,7 @@ import com.yangzhuo.reggie.mapper.DishMapper;
 import com.yangzhuo.reggie.service.DishFlavorService;
 import com.yangzhuo.reggie.service.DishService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +26,7 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
      * 新增菜品，同时保存对应的口味数据
      * @param dishDto
      */
-    @Transactional
+    @Transactional//事务注解
     public void saveWithFlavor(DishDto dishDto) {
         // 1 保存菜品的基本信息到dish表中
         this.save(dishDto);
@@ -40,6 +42,50 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
         }).collect(Collectors.toList());
 
         //保存菜品口味表到菜品口味表dish_flavor
+        dishFlavorService.saveBatch(flavors);
+    }
+
+
+    /**
+     * 根据id查询菜品信息和对应的口味信息
+     * @param id
+     * @return
+     */
+    @Override
+    public DishDto getByIdWithFlavor(Long id) {
+        //查询菜品基本信息，从dish表中查询
+        Dish dish = this.getById(id);
+        DishDto dishDto=new DishDto();
+        BeanUtils.copyProperties(dish,dishDto);
+        //查询当前菜品对应的口味信息，从dish_flavor中查询
+        //条件构造器
+        LambdaQueryWrapper<DishFlavor> queryWrapper=new LambdaQueryWrapper<>();
+        queryWrapper.eq(DishFlavor::getDishId,dish.getId());
+        List<DishFlavor> flavors = dishFlavorService.list(queryWrapper);
+        dishDto.setFlavors(flavors);
+        return dishDto;
+    }
+
+    /**
+     * 更新菜品信息，同时更新口味信息
+     * @param dishDto
+     */
+    @Override
+    @Transactional//事务注解，增删改
+    public void updateWithFlavor(DishDto dishDto) {
+        //更新dish表基本信息
+        this.updateById(dishDto);//因为dishDto是dish的子类，所以可以直接更新
+        //清理当前菜品对应口味数据--dish-flavor表中的delete操作
+        LambdaQueryWrapper<DishFlavor> lambdaQueryWrapper=new LambdaQueryWrapper();
+        lambdaQueryWrapper.eq(DishFlavor::getDishId,dishDto.getId());
+        dishFlavorService.remove(lambdaQueryWrapper);
+        //添加当前提交过来的口味数据--dish_flavor表的insert操作
+        List<DishFlavor> flavors = dishDto.getFlavors();
+        //给口味表设置id
+        flavors = flavors.stream().map((item) -> {
+            item.setDishId(dishDto.getId());
+            return item;
+        }).collect(Collectors.toList());
         dishFlavorService.saveBatch(flavors);
     }
 }
