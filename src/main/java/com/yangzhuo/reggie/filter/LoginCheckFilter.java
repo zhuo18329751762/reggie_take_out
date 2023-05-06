@@ -55,7 +55,7 @@ public class LoginCheckFilter implements Filter {
             Long empId = (Long) request.getSession().getAttribute("employee");
             BaseContext.setCurrentId(empId);
             long id=Thread.currentThread().getId();
-            log.info("线程id为: {}",id);
+            log.info("后台管理线程id为: {}",id);
             return;
         }
         //手机端
@@ -63,10 +63,10 @@ public class LoginCheckFilter implements Filter {
             filterChain.doFilter(request,response);
             log.info("以登录");
             //在该线程中设置用户id
-            Long empId = (Long) request.getSession().getAttribute("user");
-            BaseContext.setCurrentId(empId);
+            Long userId = (Long) request.getSession().getAttribute("user");
+            BaseContext.setCurrentId(userId);
             long id=Thread.currentThread().getId();
-            log.info("线程id为: {}",id);
+            log.info("手机线程id为: {}",id);
             return;
         }
         // 5 如果没有登陆，通过输出流方式向客户端响应数据
