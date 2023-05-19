@@ -8,8 +8,8 @@ import com.yangzhuo.reggie.entity.ShoppingCart;
 import com.yangzhuo.reggie.service.ShoppingCartService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @Slf4j
@@ -18,6 +18,8 @@ import java.util.List;
 public class shoppingCartController {
     @Autowired
     ShoppingCartService shoppingCartService;
+    @Autowired
+    RedisTemplate redisTemplate;
 
     /**
      * 查看购物车
